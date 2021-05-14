@@ -129,13 +129,13 @@ func (pg PGHandler) HandleReport(reader io.Reader) (err error) {
 		return err
 	}
 	reportString := string(reportBytes)
+	log.Debug("trying reportString: ", reportString)
 	result, err := pg.Cxn.Exec(reportString)
 	if err != nil {
 		log.Error("query failed: ", err)
 	} else {
 		rows, _ := result.RowsAffected()
 		log.Info(rows, " Row(s) Affected")
-
 	}
 
 	return

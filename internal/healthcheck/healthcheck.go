@@ -15,6 +15,7 @@ import (
 func ReadHealthCheckYAMLFromFile(path string) (format Format, err error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
+		log.Infof("error ReadFile\n%s\n%s", path, err)
 		return
 	}
 
@@ -139,7 +140,7 @@ func (healthCheck *SQLHealthCheck) RunHealthCheck(cxn *sql.DB) {
 		case "ge":
 			compResult = healthCheck.Expected >= answer
 		default:
-			log.Info("opperation not specified, checking if equals")
+			log.Info("operation not specified, defaulting to 'equals'")
 			compResult = healthCheck.Expected == answer
 		}
 

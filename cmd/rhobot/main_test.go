@@ -15,6 +15,8 @@ import (
 
 var conf *config.Config
 
+var HC_DIR = "../../internal/healthcheck/"
+
 func init() {
 	conf = config.NewConfig()
 	conf.SetLogLevel("debug")
@@ -22,8 +24,14 @@ func init() {
 
 func TestPostgresHealthCheckReporting(t *testing.T) {
 	cxn := database.GetPGConnection(conf.DBURI())
-	healthChecks, _ := healthcheck.ReadHealthCheckYAMLFromFile("healthcheck/healthchecksAll.yml")
+	healthChecks, err := healthcheck.ReadHealthCheckYAMLFromFile(HC_DIR + "healthchecksAll.yml")
+	if err != nil {
+		t.Fatalf("error ReadHealthCheckYAMLFromFile\n%s", err)
+	}
+	log.Debug("healthChecks is: ", healthChecks)
+
 	results, _ := healthChecks.PreformHealthChecks(cxn)
+	log.Debug("results is: ", results)
 	var elements []report.Element
 	for _, val := range results {
 		elements = append(elements, val)
@@ -39,6 +47,10 @@ func TestPostgresHealthCheckReporting(t *testing.T) {
 	prr := report.NewPongo2ReportRunnerFromString(healthcheck.TemplateHealthcheckPostgres, false)
 	pgr := report.PGHandler{Cxn: cxn}
 	reader, err := prr.ReportReader(rs)
+	if err != nil {
+		t.Fatalf("error creating ReportReader\n%s", err)
+	}
+	log.Debug("ReportReader reader is: ", reader)
 	err = pgr.HandleReport(reader)
 	if err != nil {
 		t.Fatalf("error writing report to PG database\n%s", err)
@@ -49,8 +61,8 @@ func TestTemplateHealthCheckReporting(t *testing.T) {
 
 	args := []string{
 		"rhobot",
-		"healthchecks", "healthcheck/healthchecksAll.yml",
-		"-template", "healthcheck/templateHealthcheck.html",
+		"healthchecks", HC_DIR + "healthchecksAll.yml",
+		"-template", HC_DIR + "templateHealthcheck.html",
 		"-report", "testReportAll.html"}
 	os.Args = args
 	// TODO: need to find a better way to test fatal exits
@@ -59,7 +71,7 @@ func TestTemplateHealthCheckReporting(t *testing.T) {
 
 func TestPostgresHealthCheckEscape(t *testing.T) {
 	cxn := database.GetPGConnection(conf.DBURI())
-	healthChecks, _ := healthcheck.ReadHealthCheckYAMLFromFile("healthcheck/healthchecksEscape.yml")
+	healthChecks, _ := healthcheck.ReadHealthCheckYAMLFromFile(HC_DIR + "healthchecksEscape.yml")
 	results, _ := healthChecks.PreformHealthChecks(cxn)
 	var elements []report.Element
 	for _, val := range results {
@@ -84,7 +96,7 @@ func TestPostgresHealthCheckEscape(t *testing.T) {
 
 func TestLogLevelingFiltering(t *testing.T) {
 	cxn := database.GetPGConnection(conf.DBURI())
-	healthChecks, _ := healthcheck.ReadHealthCheckYAMLFromFile("healthcheck/healthchecksAll.yml")
+	healthChecks, _ := healthcheck.ReadHealthCheckYAMLFromFile(HC_DIR + "healthchecksAll.yml")
 	results, _ := healthChecks.PreformHealthChecks(cxn)
 	var elements []report.Element
 	for _, val := range results {
@@ -122,7 +134,7 @@ func TestLogLevelingFiltering(t *testing.T) {
 func TestCLI_Healthchecks(t *testing.T) {
 	//TODO create fail verification test
 
-	args := []string{"rhobot", "healthchecks", "healthcheck/healthchecksTest.yml"}
+	args := []string{"rhobot", "healthchecks", HC_DIR + "healthchecksTest.yml"}
 	os.Args = args
 	main()
 }
@@ -136,7 +148,7 @@ func TestCLI_PG_Healthchecks(t *testing.T) {
 		t.Fatalf("error dropping public.hctest\n%s", err)
 	}
 
-	args := []string{"rhobot", "healthchecks", "healthcheck/healthchecksTest.yml",
+	args := []string{"rhobot", "healthchecks", HC_DIR + "healthchecksTest.yml",
 		"--schema", "public", "--table", "hctest"}
 	os.Args = args
 	main()

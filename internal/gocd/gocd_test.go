@@ -10,7 +10,7 @@ import (
 	"time"
 
 	log "github.com/Sirupsen/logrus"
-	"github.com/cfpb/rhobot/cli/config"
+	"github.com/cfpb/rhobot/internal/config"
 )
 
 var gocdPipelineConfig []byte
@@ -39,8 +39,8 @@ func TestMarshalJSONHAL(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	log.Debug("Pipeline Name: %+v\n", pipeline.Name)
-	log.Debug("Pipeline Git URL: %v:%v\n", pipeline.Materials[0].Attributes.URL, pipeline.Materials[0].Attributes.Branch)
+	log.Debugf("Pipeline Name: %+v\n", pipeline.Name)
+	log.Debugf("Pipeline Git URL: %v:%v\n", pipeline.Materials[0].Attributes.URL, pipeline.Materials[0].Attributes.Branch)
 }
 
 // TestUnmarshalFidelityLoss checks that data can be reserielized without fidelity loss
@@ -88,7 +88,7 @@ func TestGocdFindPipeline(t *testing.T) {
 	environmentName := findPipelineInEnvironment(environment, "test")
 
 	if environmentName != "" {
-		log.Debug("Pipeline in environment with name: %+v", environmentName)
+		log.Debugf("Pipeline in environment with name: %+v", environmentName)
 	} else {
 		log.Debug("Pipeline not found in an environment")
 	}
